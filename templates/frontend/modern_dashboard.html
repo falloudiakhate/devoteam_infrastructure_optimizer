@@ -1,0 +1,3261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infrastructure Optimizer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Design System Variables */
+        :root {
+            --color-primary: #f8485e;
+            --color-primary-light: #ff6b7d;
+            --color-secondary: #64748b;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            --color-surface: #ffffff;
+            --color-background: #f8fafc;
+            --color-border: #e2e8f0;
+            --color-text-primary: #0f172a;
+            --color-text-secondary: #475569;
+            --color-text-muted: #94a3b8;
+            
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+        }
+        
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #f8485e 0%, #ff6b7d 50%, #764ba2 100%);
+            color: white;
+            padding: var(--spacing-xl) 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+            pointer-events: none;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-left h1 {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .header-left p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: var(--font-size-base);
+            margin: 0;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+        }
+        
+        .header-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .header-btn i {
+            margin-right: var(--spacing-xs);
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-xl);
+        }
+        
+        /* Step Cards */
+        .step-card {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-xl);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        
+        .step-card.completed {
+            border-color: var(--color-success);
+            background-color: #f0fdf4;
+        }
+        
+        .step-card.available {
+            border-color: var(--color-primary);
+            cursor: pointer;
+        }
+        
+        .step-card.available:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .step-card.active {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* Step Header */
+        .step-header {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-lg) var(--spacing-xl);
+            background-color: #fafbfc;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .step-card.active .step-header {
+            background-color: #eff6ff;
+        }
+        
+        .step-card.completed .step-header {
+            background-color: #f0fdf4;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: var(--spacing-md);
+            font-size: var(--font-size-base);
+            color: var(--color-text-secondary);
+        }
+        
+        .step-number.active {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .step-number.completed {
+            background-color: var(--color-success);
+            color: white;
+        }
+        
+        .step-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+        
+        /* Step Content */
+        .step-content {
+            display: none;
+            padding: var(--spacing-xl);
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+            color: var(--color-text-primary);
+            font-size: var(--font-size-sm);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            transition: border-color 0.2s ease;
+            background-color: var(--color-surface);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--color-primary-light);
+        }
+        
+        .btn-success {
+            background-color: var(--color-success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--color-warning);
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-lg {
+            padding: var(--spacing-lg) var(--spacing-xl);
+            font-size: var(--font-size-lg);
+        }
+        
+        .btn-compact {
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-size-sm);
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background-color: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            overflow: hidden;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: var(--spacing-md);
+            text-align: center;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            transition: all 0.2s ease;
+        }
+        
+        .tab.active {
+            background-color: var(--color-surface);
+            color: var(--color-text-primary);
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #f1f5f9;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Choice Buttons */
+        .choice-group {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            background-color: var(--color-background);
+            padding: var(--spacing-xs);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+        
+        .choice-btn {
+            flex: 1;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-sm);
+            background-color: transparent;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+        
+        .choice-btn:hover:not(.selected) {
+            background-color: var(--color-surface);
+            color: var(--color-text-primary);
+        }
+        
+        .choice-btn.selected {
+            background-color: var(--color-primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .choice-btn h4 {
+            margin: 0;
+            font-size: var(--font-size-base);
+            font-weight: 500;
+        }
+        
+        .choice-btn p {
+            display: none; /* Cacher les descriptions pour un design plus compact */
+        }
+        
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-2xl);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: var(--spacing-md);
+            background-color: var(--color-surface);
+        }
+        
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--color-primary);
+            background-color: #fafbff;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+            border: 1px solid;
+        }
+        
+        .alert-success {
+            background-color: #f0fdf4;
+            border-color: var(--color-success);
+            color: #166534;
+        }
+        
+        .alert-error {
+            background-color: #fef2f2;
+            border-color: var(--color-error);
+            color: #991b1b;
+        }
+        
+        .alert-info {
+            background-color: #eff6ff;
+            border-color: var(--color-primary);
+            color: #1e40af;
+        }
+        
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--color-border);
+            border-top: 4px solid var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Results */
+        .results {
+            background-color: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+        
+        .result-item {
+            background-color: var(--color-surface);
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border-left: 3px solid var(--color-primary);
+        }
+        
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .result-item h5 {
+            margin-bottom: var(--spacing-sm);
+            font-size: var(--font-size-base);
+            color: var(--color-text-primary);
+        }
+        
+        .result-item p {
+            margin: 0;
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--spacing-lg);
+        }
+        
+        .modal-content {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            max-width: 800px;
+            width: 100%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-background);
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: var(--font-size-xl);
+            color: var(--color-text-primary);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: var(--font-size-lg);
+            color: var(--color-text-muted);
+            cursor: pointer;
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            background: var(--color-border);
+            color: var(--color-text-primary);
+        }
+        
+        .modal-body {
+            padding: var(--spacing-lg);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .history-tabs {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .history-tab {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            background: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .history-tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+        
+        .history-tab:hover:not(.active) {
+            color: var(--color-text-primary);
+        }
+        
+        .history-section {
+            display: none;
+        }
+        
+        .history-section.active {
+            display: block;
+        }
+        
+        .history-item {
+            background: var(--color-background);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border-left: 3px solid var(--color-primary);
+        }
+        
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .history-date {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+        
+        .history-item-content p {
+            margin: var(--spacing-xs) 0;
+            font-size: var(--font-size-sm);
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: var(--color-text-muted);
+            font-style: italic;
+            padding: var(--spacing-xl);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xs);
+            background: var(--color-surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
+        }
+        
+        .metric-label {
+            font-weight: 500;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-sm);
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+        
+        .status-active {
+            color: var(--color-success) !important;
+        }
+        
+        .status-inactive {
+            color: var(--color-error) !important;
+        }
+
+        /* Styles pour les nouvelles cartes */
+        .metric-card, .analysis-card, .recommendation-card {
+            background: var(--color-background);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid var(--color-border);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .metric-card:hover, .analysis-card:hover, .recommendation-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .metric-card.anomalous {
+            border-left: 4px solid var(--color-error);
+        }
+
+        .analysis-card.critical {
+            border-left: 4px solid var(--color-error);
+        }
+
+        .recommendation-card.urgent {
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .metric-card-header, .analysis-card-header, .recommendation-card-header {
+            background: var(--color-surface);
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-header-info h4, .analysis-header-info h4, .recommendation-header-info h4 {
+            margin: 0;
+            color: var(--color-text);
+            font-size: var(--font-size-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .metric-timestamp, .analysis-timestamp, .recommendation-timestamp {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+
+        .metric-status-badges, .analysis-badges, .recommendation-badges {
+            display: flex;
+            gap: var(--spacing-xs);
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-success { background: var(--color-success); color: white; }
+        .badge-warning { background: var(--color-warning); color: white; }
+        .badge-danger { background: var(--color-error); color: white; }
+        .badge-info { background: var(--color-info); color: white; }
+        .badge-secondary { background: var(--color-text-muted); color: white; }
+
+        .metric-card-body, .analysis-card-body, .recommendation-card-body {
+            padding: var(--spacing-lg);
+        }
+
+        .metric-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .metric-stat {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+
+        .metric-stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .cpu-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .memory-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .latency-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .disk-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+        .network-icon { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+        .temp-icon { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: white; }
+
+        .metric-stat-info {
+            flex: 1;
+        }
+
+        .metric-stat-label {
+            display: block;
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+            margin-bottom: 2px;
+        }
+
+        .metric-stat-value {
+            display: block;
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .metric-stat-value.normal { color: var(--color-success); }
+        .metric-stat-value.warning { color: var(--color-warning); }
+        .metric-stat-value.critical { color: var(--color-error); }
+
+        .metric-stat-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--color-border);
+            border-radius: var(--radius-full);
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .metric-stat-progress {
+            height: 100%;
+            border-radius: var(--radius-full);
+            transition: width 0.3s ease;
+        }
+
+        .metric-stat-progress.normal { background: var(--color-success); }
+        .metric-stat-progress.warning { background: var(--color-warning); }
+        .metric-stat-progress.critical { background: var(--color-error); }
+
+        .metric-services {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .metric-services h5 {
+            margin: 0 0 var(--spacing-sm) 0;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .services-status {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .service-badge {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .service-badge.success { background: var(--color-success); color: white; }
+        .service-badge.danger { background: var(--color-error); color: white; }
+        .service-badge.warning { background: var(--color-warning); color: white; }
+        .service-badge.info { background: var(--color-info); color: white; }
+        .service-badge.secondary { background: var(--color-text-muted); color: white; }
+
+        .severity-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .severity-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-sm);
+            border: 3px solid;
+        }
+
+        .severity-circle.severity-low { background: var(--color-success); border-color: var(--color-success); color: white; }
+        .severity-circle.severity-medium { background: var(--color-info); border-color: var(--color-info); color: white; }
+        .severity-circle.severity-high { background: var(--color-warning); border-color: var(--color-warning); color: white; }
+        .severity-circle.severity-critical { background: var(--color-error); border-color: var(--color-error); color: white; }
+
+        .severity-score {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .severity-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .severity-text {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+
+        .analysis-summary, .recommendation-summary {
+            display: flex;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            align-items: center;
+        }
+
+        .anomaly-stats, .recommendation-stats {
+            flex: 1;
+        }
+
+        .anomaly-stat, .recommendation-stat {
+            text-align: center;
+            padding: var(--spacing-sm);
+        }
+
+        .anomaly-count, .stat-value {
+            display: block;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .anomaly-label, .stat-label {
+            display: block;
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+            margin-top: 4px;
+        }
+
+        .recommendation-stats {
+            display: flex;
+            gap: var(--spacing-lg);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: var(--color-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-xs) auto;
+        }
+
+        .analysis-summary-text, .recommendation-summary-text {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .summary-content {
+            background: var(--color-surface);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--color-primary);
+            font-style: italic;
+            color: var(--color-text-muted);
+        }
+
+        .anomaly-types {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .anomaly-type-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+        }
+
+        .anomaly-type-badge {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--color-error);
+            color: white;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metric-actions, .analysis-actions, .recommendation-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            justify-content: flex-end;
+            border-top: 1px solid var(--color-border);
+            padding-top: var(--spacing-md);
+        }
+
+        .btn-sm {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: var(--font-size-sm);
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--color-text-muted);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-text);
+            transform: translateY(-1px);
+        }
+
+        /* Styles pour les modals de détails */
+        .modal-large {
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .detail-section {
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-section h4 {
+            color: var(--color-text);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-sm);
+        }
+
+        .detail-item {
+            padding: var(--spacing-sm);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+
+        .detail-item strong {
+            color: var(--color-text-muted);
+            font-size: var(--font-size-sm);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .severity-badge, .priority-badge {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: var(--font-size-xs);
+        }
+
+        .severity-badge.severity-low, .priority-badge.badge-success {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .severity-badge.severity-medium, .priority-badge.badge-info {
+            background: var(--color-info);
+            color: white;
+        }
+
+        .severity-badge.severity-high, .priority-badge.badge-warning {
+            background: var(--color-warning);
+            color: white;
+        }
+
+        .severity-badge.severity-critical, .priority-badge.badge-danger {
+            background: var(--color-error);
+            color: white;
+        }
+
+        .anomaly-summary-box, .executive-summary-box, .detailed-analysis-box {
+            background: var(--color-surface);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--color-primary);
+            font-style: italic;
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+
+        .anomaly-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-sm);
+        }
+
+        .anomaly-detail-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+
+        .anomaly-detail-item.anomaly-detected {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: var(--color-error);
+            color: var(--color-error);
+        }
+
+        .anomaly-detail-item.anomaly-normal {
+            background: rgba(76, 175, 80, 0.1);
+            border-color: var(--color-success);
+            color: var(--color-success);
+        }
+
+        .anomaly-status {
+            margin-left: auto;
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+
+        .metrics-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-sm);
+        }
+
+        .metric-summary-item {
+            padding: var(--spacing-sm);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+
+        .recommendations-list {
+            space-y: var(--spacing-sm);
+        }
+
+        .recommendation-item {
+            display: flex;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .recommendation-number {
+            width: 30px;
+            height: 30px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            flex-shrink: 0;
+        }
+
+        .recommendation-content {
+            flex: 1;
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        /* Styles pour les cartes de détails des métriques */
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .metric-detail-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+            border: 1px solid var(--color-border);
+            transition: all 0.3s ease;
+        }
+
+        .metric-detail-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .metric-detail-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .metric-detail-header i {
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .metric-detail-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .metric-detail-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--color-border);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .metric-detail-progress {
+            height: 100%;
+            border-radius: var(--radius-full);
+            transition: width 0.3s ease;
+        }
+
+        .metric-detail-progress.normal { background: var(--color-success); }
+        .metric-detail-progress.warning { background: var(--color-warning); }
+        .metric-detail-progress.critical { background: var(--color-error); }
+
+        .services-status-detailed {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+
+        .services-status-detailed .service-badge {
+            font-size: var(--font-size-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+        }
+        
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mb-0 { margin-bottom: 0; }
+        .mt-lg { margin-top: var(--spacing-lg); }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--spacing-md);
+            }
+            
+            .choice-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .step-header {
+                padding: var(--spacing-md);
+            }
+            
+            .step-content {
+                padding: var(--spacing-md);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1>
+                    <i class="fas fa-server"></i>
+                    Infrastructure Optimizer
+                </h1>
+                <p>Workflow d'optimisation intelligent avec IA</p>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" onclick="showHistory()">
+                    <i class="fas fa-history"></i>
+                    Historique
+                </button>
+                <button class="header-btn" onclick="clearWorkflow()">
+                    <i class="fas fa-refresh"></i>
+                    Nouveau
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Étape 1: Ingestion -->
+        <div class="step-card active" id="step-1">
+            <div class="step-header">
+                <div class="step-number active" id="number-1">1</div>
+                <h2 class="step-title">Ingestion des Données</h2>
+            </div>
+            
+            <div class="step-content active" id="content-1">
+                <div class="tabs">
+                    <button class="tab active" data-tab="json">JSON Direct</button>
+                    <button class="tab" data-tab="file">Import Fichier</button>
+                </div>
+                
+                <!-- Onglet JSON -->
+                <div class="tab-content active" id="json-content">
+                    <div class="form-group">
+                        <label class="form-label">Données JSON</label>
+                        <textarea class="form-control" id="json-input" rows="12">{
+  "timestamp": "2023-10-01T12:00:00Z",
+  "cpu_usage": 85,
+  "memory_usage": 70,
+  "latency_ms": 250,
+  "disk_usage": 65,
+  "network_in_kbps": 1200,
+  "network_out_kbps": 900,
+  "io_wait": 5,
+  "thread_count": 150,
+  "active_connections": 45,
+  "error_rate": 0.02,
+  "uptime_seconds": 360000,
+  "temperature_celsius": 65,
+  "power_consumption_watts": 250,
+  "service_status": {
+    "database": "online",
+    "api_gateway": "degraded",
+    "cache": "online"
+  }
+}</textarea>
+                    </div>
+                </div>
+                
+                <!-- Onglet Fichier -->
+                <div class="tab-content" id="file-content">
+                    <div class="upload-area" id="upload-area">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--color-text-muted); margin-bottom: 1rem;"></i>
+                        <p>Glissez un fichier JSON ici ou cliquez pour sélectionner</p>
+                        <input type="file" id="file-input" accept=".json" style="display: none;">
+                    </div>
+                </div>
+                
+                
+                <button class="btn btn-primary" onclick="startIngestion()">
+                    <i class="fas fa-upload"></i>
+                    Lancer l'ingestion
+                </button>
+            </div>
+        </div>
+        
+        <!-- Étape 2: Analyse -->
+        <div class="step-card" id="step-2">
+            <div class="step-header">
+                <div class="step-number" id="number-2">2</div>
+                <h2 class="step-title">Analyse des Anomalies</h2>
+            </div>
+            
+            <div class="step-content" id="content-2">
+                <div class="choice-group">
+                    <div class="choice-btn selected" data-analysis-method="classic">
+                        <h4>Classic</h4>
+                        <p>Détection basée sur des seuils</p>
+                    </div>
+                    <div class="choice-btn" data-analysis-method="llm">
+                        <h4>LLM</h4>
+                        <p>Détection intelligente avec IA</p>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" id="analysis-btn" onclick="startAnalysis()">
+                    <i class="fas fa-chart-line"></i>
+                    Lancer l'analyse
+                </button>
+                
+                <div id="analysis-loading" style="display: none; text-align: center; margin-top: var(--spacing-lg);">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: var(--spacing-md); color: var(--color-text-secondary);">
+                        Analyse en cours... <span id="analysis-timer">0s</span>
+                    </p>
+                    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">
+                        L'analyse peut prendre du temps selon la méthode choisie
+                    </p>
+                </div>
+                
+                <div id="analysis-results"></div>
+            </div>
+        </div>
+        
+        <!-- Étape 3: Recommandations -->
+        <div class="step-card" id="step-3">
+            <div class="step-header">
+                <div class="step-number" id="number-3">3</div>
+                <h2 class="step-title">Recommandations</h2>
+            </div>
+            
+            <div class="step-content" id="content-3">
+                <div class="choice-group">
+                    <div class="choice-btn selected" data-recommendation-method="classic">
+                        <h4>Classic</h4>
+                        <p>Recommandations basées sur des règles</p>
+                    </div>
+                    <div class="choice-btn" data-recommendation-method="llm">
+                        <h4>LLM</h4>
+                        <p>Recommandations intelligentes avec IA</p>
+                    </div>
+                </div>
+                
+                <button class="btn btn-warning" id="recommendations-btn" onclick="startRecommendations()">
+                    <i class="fas fa-lightbulb"></i>
+                    Générer les recommandations
+                </button>
+                
+                <div id="recommendations-loading" style="display: none; text-align: center; margin-top: var(--spacing-lg);">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: var(--spacing-md); color: var(--color-text-secondary);">
+                        Génération des recommandations... <span id="recommendations-timer">0s</span>
+                    </p>
+                    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">
+                        La génération peut prendre du temps selon la méthode choisie
+                    </p>
+                </div>
+                
+                <div id="recommendations-results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    
+    <script>
+        // Configuration API
+        const API_BASE = 'http://localhost:8000/api';
+        
+        // État global
+        let currentMetricsIds = [];
+        let selectedAnalysisMethod = 'classic';
+        let selectedRecommendationMethod = 'classic';
+        let currentAnalysisResults = [];
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+            initializeFileUpload();
+        });
+        
+        function initializeEventListeners() {
+            // Onglets
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    switchTab(tabName);
+                });
+            });
+            
+            // Boutons de choix de méthode pour l'analyse
+            document.querySelectorAll('.choice-btn[data-analysis-method]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.choice-btn[data-analysis-method]').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedAnalysisMethod = this.dataset.analysisMethod;
+                });
+            });
+            
+            document.querySelectorAll('.choice-btn[data-recommendation-method]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.choice-btn[data-recommendation-method]').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedRecommendationMethod = this.dataset.recommendationMethod;
+                });
+            });
+        }
+        
+        function initializeFileUpload() {
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFile(e.dataTransfer.files[0]);
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                handleFile(e.target.files[0]);
+            });
+        }
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-content`).classList.add('active');
+        }
+        
+        function handleFile(file) {
+            if (!file || !file.name.endsWith('.json')) {
+                showAlert('error', 'Veuillez sélectionner un fichier JSON valide');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    JSON.parse(content);
+                    document.getElementById('json-input').value = content;
+                    switchTab('json');
+                    showAlert('success', 'Fichier chargé avec succès');
+                } catch (error) {
+                    showAlert('error', 'Fichier JSON invalide');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        async function startIngestion() {
+            const activeTab = document.querySelector('.tab.active').dataset.tab;
+            let data;
+            
+            try {
+                if (activeTab === 'json') {
+                    const jsonInput = document.getElementById('json-input').value.trim();
+                    if (!jsonInput) {
+                        showAlert('error', 'Veuillez saisir des données JSON');
+                        return;
+                    }
+                    data = JSON.parse(jsonInput);
+                }
+                
+                showLoading('Ingestion en cours...');
+                
+                const endpoint = Array.isArray(data) ? 'ingestion/bulk_ingestion' : 'ingestion/ingest';
+                const response = await fetch(`${API_BASE}/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    
+                    if (Array.isArray(data)) {
+                        // Pour les données en lot
+                        if (result.data && Array.isArray(result.data)) {
+                            currentMetricsIds = result.data.map(item => item.metrics_id || item.id);
+                        } else if (result.ingested_metrics) {
+                            currentMetricsIds = result.ingested_metrics.map(item => item.id);
+                        }
+                    } else {
+                        // Pour une métrique unique
+                        if (result.data && result.data.id) {
+                            currentMetricsIds = [result.data.id];
+                        } else if (result.metrics_id) {
+                            currentMetricsIds = [result.metrics_id];
+                        } else if (result.id) {
+                            currentMetricsIds = [result.id];
+                        }
+                    }
+                    
+                    showAlert('success', 'Données ingérées avec succès');
+                    completeStep(1);
+                    enableStep(2);
+                } else {
+                    showAlert('error', `Erreur: ${result.error || result.message}`);
+                }
+            } catch (error) {
+                console.error('Erreur ingestion:', error);
+                showAlert('error', `Erreur: ${error.message}`);
+            }
+        }
+        
+        async function startAnalysis() {
+            if (currentMetricsIds.length === 0) {
+                showAlert('error', 'Aucune donnée à analyser. Effectuez d\'abord l\'ingestion.');
+                return;
+            }
+            
+            // Afficher le loader et désactiver le bouton
+            const analysisBtn = document.getElementById('analysis-btn');
+            const analysisLoading = document.getElementById('analysis-loading');
+            const analysisResults = document.getElementById('analysis-results');
+            
+            analysisBtn.disabled = true;
+            analysisBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...';
+            analysisLoading.style.display = 'block';
+            analysisResults.innerHTML = '';
+            
+            // Démarrer le timer
+            let startTime = Date.now();
+            const timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('analysis-timer').textContent = `${elapsed}s`;
+            }, 1000);
+            
+            const results = [];
+            
+            try {
+                for (const metricsId of currentMetricsIds) {
+                    const response = await fetch(`${API_BASE}/analysis/analyze?metrics_id=${metricsId}&method=${selectedAnalysisMethod}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        // Si c'est une réponse détaillée (avec analysis_id), c'est une analyse individuelle
+                        if (result.analysis_id || result.severity_score !== undefined) {
+                            results.push(result);
+                        } else {
+                            // Sinon c'est une réponse de lot, on stocke les stats
+                            results.push(result.data || result);
+                        }
+                    }
+                }
+                
+                if (results.length > 0) {
+                    // Vérifier si on a des données détaillées directement
+                    const hasDetailedData = results.some(r => r.analysis_id || r.severity_score !== undefined);
+                    
+                    if (hasDetailedData) {
+                        // Récupérer les détails complets des analyses si nécessaire
+                        await fetchAnalysisDetails(results);
+                    } else {
+                        // Sinon récupérer les analyses détaillées
+                        await fetchDetailedAnalysis();
+                    }
+                    
+                    showAlert('success', `Analyse terminée ! ${results[0].analyzed || results.length} analyses réalisées`);
+                    completeStep(2);
+                    enableStep(3);
+                } else {
+                    showAlert('error', 'Aucune analyse n\'a pu être réalisée');
+                }
+                
+            } catch (error) {
+                showAlert('error', `Erreur: ${error.message}`);
+            } finally {
+                // Nettoyer le loader et réactiver le bouton
+                clearInterval(timer);
+                analysisBtn.disabled = false;
+                analysisBtn.innerHTML = '<i class="fas fa-chart-line"></i> Lancer l\'analyse';
+                analysisLoading.style.display = 'none';
+            }
+        }
+        
+        async function startRecommendations() {
+            if (currentMetricsIds.length === 0) {
+                showAlert('error', 'Aucune donnée à analyser. Effectuez d\'abord l\'ingestion et l\'analyse.');
+                return;
+            }
+            
+            // Afficher le loader et désactiver le bouton
+            const recommendationsBtn = document.getElementById('recommendations-btn');
+            const recommendationsLoading = document.getElementById('recommendations-loading');
+            const recommendationsResults = document.getElementById('recommendations-results');
+            
+            recommendationsBtn.disabled = true;
+            recommendationsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
+            recommendationsLoading.style.display = 'block';
+            recommendationsResults.innerHTML = '';
+            
+            // Démarrer le timer
+            let startTime = Date.now();
+            const timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('recommendations-timer').textContent = `${elapsed}s`;
+            }, 1000);
+            
+            const results = [];
+            
+            try {
+                for (const metricsId of currentMetricsIds) {
+                    const response = await fetch(`${API_BASE}/recommendations/generate?metrics_id=${metricsId}&method=${selectedRecommendationMethod}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        // Si c'est une réponse détaillée (avec report_id), c'est une recommandation individuelle
+                        if (result.report_id || result.executive_summary || result.priority_level) {
+                            results.push(result);
+                        } else {
+                            // Sinon c'est une réponse de lot, on stocke les stats
+                            results.push(result.data || result);
+                        }
+                    }
+                }
+                
+                if (results.length > 0) {
+                    // Vérifier si on a des données détaillées directement
+                    const hasDetailedData = results.some(r => r.report_id || r.executive_summary || r.priority_level);
+                    
+                    if (hasDetailedData) {
+                        // Récupérer les détails complets des rapports
+                        await fetchRecommendationReports(results);
+                    } else {
+                        // Sinon récupérer les recommandations détaillées
+                        await fetchDetailedRecommendations();
+                    }
+                    
+                    showAlert('success', `Recommandations générées ! ${results[0].generated || results.length} rapports créés`);
+                    completeStep(3);
+                } else {
+                    showAlert('error', 'Aucune recommandation n\'a pu être générée');
+                }
+                
+            } catch (error) {
+                showAlert('error', `Erreur: ${error.message}`);
+            } finally {
+                // Nettoyer le loader et réactiver le bouton
+                clearInterval(timer);
+                recommendationsBtn.disabled = false;
+                recommendationsBtn.innerHTML = '<i class="fas fa-lightbulb"></i> Générer les recommandations';
+                recommendationsLoading.style.display = 'none';
+            }
+        }
+        
+        async function fetchDetailedAnalysis() {
+            try {
+                // Récupérer la liste des analyses pour nos métriques
+                const response = await fetch(`${API_BASE}/analysis/anomalies`);
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.length > 0) {
+                    // Filtrer les analyses pour nos métriques
+                    const relevantAnalyses = result.data.filter(analysis => 
+                        currentMetricsIds.includes(analysis.metrics_id || analysis.metrics)
+                    );
+                    
+                    currentAnalysisResults = relevantAnalyses;
+                    displayAnalysisResults(relevantAnalyses);
+                } else {
+                    // Affichage par défaut si pas de détails disponibles
+                    const defaultResults = currentMetricsIds.map((id, index) => ({
+                        metrics_id: id,
+                        severity_score: 'N/A',
+                        anomaly_summary: 'Analyse terminée avec succès',
+                        analysis_method: selectedAnalysisMethod
+                    }));
+                    displayAnalysisResults(defaultResults);
+                }
+            } catch (error) {
+                console.error('Erreur récupération analyses détaillées:', error);
+            }
+        }
+        
+        async function fetchDetailedRecommendations() {
+            try {
+                // Récupérer la liste des recommandations pour nos métriques
+                const response = await fetch(`${API_BASE}/recommendations/reports`);
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.length > 0) {
+                    // Filtrer les recommandations pour nos métriques
+                    const relevantRecommendations = result.data.filter(rec => 
+                        currentMetricsIds.includes(rec.metrics_id || rec.metrics)
+                    );
+                    
+                    displayRecommendations(relevantRecommendations);
+                } else {
+                    // Affichage par défaut si pas de détails disponibles
+                    const defaultResults = currentMetricsIds.map((id, index) => ({
+                        metrics_id: id,
+                        priority_level: 'medium',
+                        executive_summary: 'Recommandations générées avec succès',
+                        detailed_analysis: 'Les recommandations ont été générées et sauvegardées.',
+                        generation_method: selectedRecommendationMethod
+                    }));
+                    displayRecommendations(defaultResults);
+                }
+            } catch (error) {
+                console.error('Erreur récupération recommandations détaillées:', error);
+            }
+        }
+        
+        async function fetchAnalysisDetails(summaries) {
+            try {
+                // Pour les analyses, les données détaillées sont déjà dans la réponse
+                // Mais on nettoie et valide les données
+                const cleanedSummaries = summaries.map(sanitizeAnalysisData);
+                currentAnalysisResults = cleanedSummaries;
+                displayAnalysisResults(cleanedSummaries);
+                
+            } catch (error) {
+                console.error('Erreur traitement analyses détaillées:', error);
+                // Fallback en cas d'erreur
+                displayAnalysisResults(summaries);
+            }
+        }
+        
+        function sanitizeAnalysisData(data) {
+            // Fonction pour nettoyer et valider les données d'analyse
+            try {
+                // Nettoyer les champs JSON markdown si présents
+                if (data.anomaly_summary && typeof data.anomaly_summary === 'string') {
+                    // Extraire le JSON des blocs markdown si présent
+                    const jsonMatch = data.anomaly_summary.match(/```json\s*([\s\S]*?)\s*```/);
+                    if (jsonMatch) {
+                        try {
+                            const cleanJson = JSON.parse(jsonMatch[1]);
+                            // Fusionner les données JSON extraites
+                            Object.assign(data, cleanJson);
+                        } catch (e) {
+                            console.warn('Impossible de parser le JSON markdown dans l\'analyse:', e);
+                        }
+                    }
+                }
+                
+                // Assurer que tous les champs requis existent avec des valeurs par défaut
+                return {
+                    ...data,
+                    severity_score: data.severity_score || data.severity || 5,
+                    anomaly_summary: data.anomaly_summary || data.summary || 'Analyse terminée',
+                    method_used: data.method_used || data.analysis_method || data.method || selectedAnalysisMethod || 'classic',
+                    is_critical: data.is_critical || data.severity_score >= 8 || false
+                };
+                
+            } catch (error) {
+                console.error('Erreur sanitization des données d\'analyse:', error);
+                return data; // Retourner les données originales en cas d'erreur
+            }
+        }
+        
+        async function fetchRecommendationReports(summaries) {
+            try {
+                const detailedReports = [];
+                
+                for (const summary of summaries) {
+                    if (summary.report_id) {
+                        console.log('Récupération du rapport:', summary.report_id);
+                        const response = await fetch(`${API_BASE}/recommendations/reports/${summary.report_id}`);
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            // Les données sont directement dans result, pas dans result.data
+                            const enrichedReport = sanitizeRecommendationData({
+                                ...result,
+                                generation_method: summary.method_used || summary.method || result.generation_method,
+                                processing_duration: summary.processing_duration_seconds
+                            });
+                            detailedReports.push(enrichedReport);
+                        }
+                    }
+                }
+                
+                if (detailedReports.length > 0) {
+                    displayRecommendations(detailedReports);
+                } else {
+                    // Fallback si aucun détail récupéré
+                    displayRecommendations(summaries);
+                }
+                
+            } catch (error) {
+                console.error('Erreur récupération rapports détaillés:', error);
+                // Fallback en cas d'erreur
+                displayRecommendations(summaries);
+            }
+        }
+        
+        function sanitizeRecommendationData(data) {
+            // Fonction pour nettoyer et valider les données de recommandation
+            try {
+                // Nettoyer les champs JSON markdown si présents
+                if (data.detailed_analysis && typeof data.detailed_analysis === 'string') {
+                    // Extraire le JSON des blocs markdown
+                    const jsonMatch = data.detailed_analysis.match(/```json\s*([\s\S]*?)\s*```/);
+                    if (jsonMatch) {
+                        try {
+                            const cleanJson = JSON.parse(jsonMatch[1]);
+                            // Fusionner les données JSON extraites
+                            Object.assign(data, cleanJson);
+                        } catch (e) {
+                            console.warn('Impossible de parser le JSON markdown:', e);
+                        }
+                    }
+                }
+                
+                // Assurer que tous les champs requis existent avec des valeurs par défaut
+                return {
+                    ...data,
+                    executive_summary: data.executive_summary || data.summary || 'Recommandations générées',
+                    detailed_analysis: data.detailed_analysis || data.analysis || 'Analyse disponible dans les recommandations détaillées',
+                    priority_level: data.priority_level || data.priority || 'medium',
+                    estimated_impact: data.estimated_impact || data.impact || 'Amélioration système',
+                    implementation_timeframe: data.implementation_timeframe || data.timeframe || '1-2 semaines',
+                    recommendations: data.recommendations || []
+                };
+                
+            } catch (error) {
+                console.error('Erreur sanitization des données:', error);
+                return data; // Retourner les données originales en cas d'erreur
+            }
+        }
+        
+        function completeStep(stepNumber) {
+            const stepCard = document.getElementById(`step-${stepNumber}`);
+            const stepNumber_el = document.getElementById(`number-${stepNumber}`);
+            
+            stepCard.classList.add('completed');
+            stepNumber_el.classList.remove('active');
+            stepNumber_el.classList.add('completed');
+            stepNumber_el.innerHTML = '<i class="fas fa-check"></i>';
+        }
+        
+        function enableStep(stepNumber) {
+            const stepCard = document.getElementById(`step-${stepNumber}`);
+            const stepHeader = stepCard.querySelector('.step-header');
+            
+            stepCard.classList.add('available');
+            stepHeader.style.cursor = 'pointer';
+            stepHeader.onclick = () => activateStep(stepNumber);
+            
+            const stepTitle = stepCard.querySelector('.step-title');
+            if (!stepTitle.innerHTML.includes('fa-hand-pointer')) {
+                stepTitle.innerHTML += ' <i class="fas fa-hand-pointer" style="color: var(--color-primary); margin-left: var(--spacing-sm);"></i>';
+            }
+        }
+        
+        function activateStep(stepNumber) {
+            // Désactiver toutes les étapes
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.step-number').forEach(num => {
+                num.classList.remove('active');
+            });
+            
+            // Activer l'étape sélectionnée
+            const stepCard = document.getElementById(`step-${stepNumber}`);
+            const stepContent = document.getElementById(`content-${stepNumber}`);
+            const stepNumber_el = document.getElementById(`number-${stepNumber}`);
+            
+            stepCard.classList.add('active');
+            stepContent.classList.add('active');
+            
+            if (!stepNumber_el.classList.contains('completed')) {
+                stepNumber_el.classList.add('active');
+            }
+        }
+        
+        function displayAnalysisResults(results) {
+            const resultsDiv = document.getElementById('analysis-results');
+            let html = '<div class="results"><h4>Résultats d\'analyse</h4>';
+            
+            results.forEach((result, index) => {
+                
+                // Adapter aux différents formats de réponse
+                const severity = result.severity_score || result.severity || 'N/A';
+                let summary = result.anomaly_summary || result.summary || result.analysis_summary || 'Analyse terminée';
+                const method = result.method_used || result.analysis_method || result.method || selectedAnalysisMethod || 'N/A';
+                
+                // Améliorer le formatage du résumé en remplaçant les | par des sauts de ligne
+                summary = summary.replace(/\s*\|\s*/g, '<br><br>');
+                
+                html += `
+                    <div class="result-item">
+                        <h5>Analyse ${index + 1} (${method})</h5>
+                        <p><strong>Sévérité:</strong> <span style="color: ${severity >= 8 ? 'var(--color-error)' : severity >= 5 ? 'var(--color-warning)' : 'var(--color-success)'}">${severity}/10</span></p>
+                        <div><strong>Résumé:</strong> <div style="margin-top: var(--spacing-xs);">${summary}</div></div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+        
+        function displayRecommendations(results) {
+            const resultsDiv = document.getElementById('recommendations-results');
+            let html = '<div class="results"><h4>Recommandations</h4>';
+            
+            results.forEach((result, index) => {
+                
+                // Adapter aux différents formats de réponse
+                const priority = result.priority_level || result.priority || 'medium';
+                const summary = result.executive_summary || result.summary || 'Recommandations générées';
+                const details = result.detailed_analysis || result.analysis || result.description || 'Détails non disponibles';
+                const method = result.generation_method || result.method || 'N/A';
+                const timeframe = result.implementation_timeframe || 'Non spécifié';
+                const impact = result.estimated_impact || 'Impact non spécifié';
+                
+                html += `
+                    <div class="result-item">
+                        <h5>Rapport ${index + 1} (${method})</h5>
+                        <p><strong>Priorité:</strong> <span style="color: ${priority === 'high' ? 'var(--color-error)' : priority === 'medium' ? 'var(--color-warning)' : 'var(--color-success)'}">${priority}</span></p>
+                        <p><strong>Résumé:</strong> ${summary}</p>
+                        <p><strong>Délai d'implémentation:</strong> ${timeframe}</p>
+                        <p><strong>Impact estimé:</strong> ${impact}</p>
+                `;
+                
+                // Afficher les recommandations individuelles si disponibles
+                if (result.recommendations && Array.isArray(result.recommendations)) {
+                    html += `
+                        <details style="margin-top: var(--spacing-sm);">
+                            <summary style="cursor: pointer; font-weight: 500;">Voir les ${result.recommendations.length} recommandations</summary>
+                            <div style="margin-top: var(--spacing-sm);">
+                    `;
+                    
+                    result.recommendations.forEach((rec, recIndex) => {
+                        
+                        const recPriority = rec.priority || 'medium';
+                        const recArea = rec.area || rec.problem || `Recommandation ${recIndex + 1}`;
+                        const recIssue = rec.issue || rec.problem || '';
+                        let recActions = rec.actions || rec.implementation_steps || [];
+                        
+                        // Gérer le cas où les actions sont des objets avec des propriétés spécifiques
+                        if (recActions.length > 0) {
+                            recActions = recActions.map(action => {
+                                // Si c'est un objet, essayer d'extraire le texte pertinent
+                                if (typeof action === 'object' && action !== null) {
+                                    // Essayer différentes propriétés communes
+                                    return action.description || 
+                                           action.text || 
+                                           action.action || 
+                                           action.step ||
+                                           action.instruction ||
+                                           action.recommendation ||
+                                           Object.values(action)[0] || // Première valeur de l'objet
+                                           JSON.stringify(action);
+                                }
+                                return action || '';
+                            }).filter(action => action && action.length > 0); // Filtrer les actions vides
+                        }
+                        
+                        html += `
+                            <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm); border-left: 3px solid ${recPriority === 'high' ? 'var(--color-error)' : recPriority === 'medium' ? 'var(--color-warning)' : 'var(--color-success)'}; background: var(--color-background);">
+                                <h6 style="margin-bottom: var(--spacing-xs); color: var(--color-text-primary);">${recArea}</h6>
+                                <p style="margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm);"><strong>Priorité:</strong> ${recPriority}</p>
+                                ${recIssue ? `<p style="margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm);"><strong>Problème:</strong> ${recIssue}</p>` : ''}
+                                ${recActions.length > 0 ? `
+                                    <p style="margin-bottom: var(--spacing-xs); font-size: var(--font-size-sm);"><strong>Actions:</strong></p>
+                                    <ul style="margin-left: var(--spacing-md); font-size: var(--font-size-sm);">
+                                        ${recActions.map(action => `<li>${action}</li>`).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </details>
+                    `;
+                } else {
+                    // Fallback pour les détails généraux
+                    html += `
+                        <details style="margin-top: var(--spacing-sm);">
+                            <summary style="cursor: pointer;">Voir les détails</summary>
+                            <div style="margin-top: var(--spacing-sm); padding: var(--spacing-sm); background: var(--color-background); border-radius: var(--radius-sm);">
+                                ${typeof marked !== 'undefined' ? marked.parse(details) : details}
+                            </div>
+                        </details>
+                    `;
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+        
+        function showAlert(type, message) {
+            // Supprimer les alertes existantes
+            document.querySelectorAll('.alert').forEach(alert => alert.remove());
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        function showLoading(message) {
+            showAlert('info', `<span class="loading"></span> ${message}`);
+        }
+        
+        // Fonctions pour les boutons du header
+        async function showHistory() {
+            try {
+                // Récupérer l'historique des analyses, recommandations et métriques
+                const [analysisResponse, recommendationsResponse, metricsResponse] = await Promise.all([
+                    fetch(`${API_BASE}/analysis/anomalies`),
+                    fetch(`${API_BASE}/recommendations/reports`),
+                    fetch(`${API_BASE}/ingestion/metrics`)
+                ]);
+                
+                const analysisResult = await analysisResponse.json();
+                const recommendationsResult = await recommendationsResponse.json();
+                const metricsResult = await metricsResponse.json();
+                
+                
+                // Extraire les données depuis les réponses API
+                const analyses = analysisResult.anomalies || analysisResult.data || [];
+                const recommendations = recommendationsResult.reports || recommendationsResult.data || [];
+                const metrics = metricsResult.metrics || metricsResult.data || [];
+                
+                // Créer et afficher la modal d'historique avec les bonnes propriétés
+                showHistoryModal(analyses, recommendations, metrics);
+                
+            } catch (error) {
+                showAlert('error', 'Erreur lors du chargement de l\'historique');
+                console.error('Erreur historique:', error);
+            }
+        }
+        
+        function showHistoryModal(analyses, recommendations, metrics) {
+            // Créer la modal d'historique
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-history"></i> Historique</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="history-tabs">
+                            <button class="history-tab active" onclick="switchHistoryTab('metrics')">
+                                Métriques (${metrics.length})
+                            </button>
+                            <button class="history-tab" onclick="switchHistoryTab('analyses')">
+                                Analyses (${analyses.length})
+                            </button>
+                            <button class="history-tab" onclick="switchHistoryTab('recommendations')">
+                                Recommandations (${recommendations.length})
+                            </button>
+                        </div>
+                        <div class="history-content">
+                            <div id="history-metrics" class="history-section active">
+                                ${renderHistoryMetrics(metrics)}
+                            </div>
+                            <div id="history-analyses" class="history-section">
+                                ${renderHistoryAnalyses(analyses)}
+                            </div>
+                            <div id="history-recommendations" class="history-section">
+                                ${renderHistoryRecommendations(recommendations)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function renderHistoryMetrics(metrics) {
+            if (metrics.length === 0) {
+                return '<p class="empty-state">Aucune métrique dans l\'historique</p>';
+            }
+            
+            return metrics.map(metric => `
+                <div class="metric-card ${metric.is_anomalous ? 'anomalous' : ''}">
+                    <div class="metric-card-header">
+                        <div class="metric-header-info">
+                            <h4>Métrique #${metric.id}</h4>
+                            <span class="metric-timestamp">${new Date(metric.timestamp).toLocaleString('fr-FR')}</span>
+                        </div>
+                        <div class="metric-status-badges">
+                            ${getAnalysisStatusBadge(metric.analysis_completed)}
+                            ${getAnomalyStatusBadge(metric.is_anomalous)}
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card-body">
+                        <div class="metric-stats-grid">
+                            <div class="metric-stat">
+                                <div class="metric-stat-icon cpu-icon">
+                                    <i class="fas fa-microchip"></i>
+                                </div>
+                                <div class="metric-stat-info">
+                                    <span class="metric-stat-label">CPU</span>
+                                    <span class="metric-stat-value ${getMetricLevel(metric.cpu_usage, 'cpu')}">${metric.cpu_usage}%</span>
+                                    <div class="metric-stat-bar">
+                                        <div class="metric-stat-progress ${getMetricLevel(metric.cpu_usage, 'cpu')}" style="width: ${metric.cpu_usage}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-stat">
+                                <div class="metric-stat-icon memory-icon">
+                                    <i class="fas fa-memory"></i>
+                                </div>
+                                <div class="metric-stat-info">
+                                    <span class="metric-stat-label">Mémoire</span>
+                                    <span class="metric-stat-value ${getMetricLevel(metric.memory_usage, 'memory')}">${metric.memory_usage}%</span>
+                                    <div class="metric-stat-bar">
+                                        <div class="metric-stat-progress ${getMetricLevel(metric.memory_usage, 'memory')}" style="width: ${metric.memory_usage}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-stat">
+                                <div class="metric-stat-icon latency-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="metric-stat-info">
+                                    <span class="metric-stat-label">Latence</span>
+                                    <span class="metric-stat-value ${getLatencyLevel(metric.latency_ms)}">${metric.latency_ms}ms</span>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-stat">
+                                <div class="metric-stat-icon disk-icon">
+                                    <i class="fas fa-hdd"></i>
+                                </div>
+                                <div class="metric-stat-info">
+                                    <span class="metric-stat-label">Disque</span>
+                                    <span class="metric-stat-value ${getMetricLevel(metric.disk_usage, 'disk')}">${metric.disk_usage}%</span>
+                                    <div class="metric-stat-bar">
+                                        <div class="metric-stat-progress ${getMetricLevel(metric.disk_usage, 'disk')}" style="width: ${metric.disk_usage}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-stat">
+                                <div class="metric-stat-icon network-icon">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                                <div class="metric-stat-info">
+                                    <span class="metric-stat-label">Réseau</span>
+                                    <span class="metric-stat-value">↓${formatBytes(metric.network_in_kbps * 1024)} ↑${formatBytes(metric.network_out_kbps * 1024)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-stat">
+                                <div class="metric-stat-icon temp-icon">
+                                    <i class="fas fa-thermometer-half"></i>
+                                </div>
+                                <div class="metric-stat-info">
+                                    <span class="metric-stat-label">Température</span>
+                                    <span class="metric-stat-value ${getTempLevel(metric.temperature_celsius)}">${metric.temperature_celsius}°C</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-services">
+                            <h5><i class="fas fa-cogs"></i> Services</h5>
+                            <div class="services-status">
+                                ${getServiceStatusBadges(metric.service_status)}
+                            </div>
+                        </div>
+                        
+                        <div class="metric-actions">
+                            <button class="btn-secondary btn-sm" onclick="showMetricDetails(${metric.id})">
+                                <i class="fas fa-info-circle"></i> Détails complets
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderHistoryAnalyses(analyses) {
+            if (analyses.length === 0) {
+                return '<p class="empty-state">Aucune analyse dans l\'historique</p>';
+            }
+            
+            return analyses.map(analysis => `
+                <div class="analysis-card ${analysis.is_critical ? 'critical' : ''}">
+                    <div class="analysis-card-header">
+                        <div class="analysis-header-info">
+                            <h4><i class="fas fa-search"></i> Analyse #${analysis.analysis_id || analysis.id}</h4>
+                            <span class="analysis-timestamp">${new Date(analysis.detected_at || analysis.created_at).toLocaleString('fr-FR')}</span>
+                        </div>
+                        <div class="analysis-badges">
+                            <span class="badge ${analysis.is_critical ? 'badge-danger' : 'badge-info'}">
+                                ${analysis.is_critical ? '<i class="fas fa-exclamation-triangle"></i> CRITIQUE' : '<i class="fas fa-info-circle"></i> Normal'}
+                            </span>
+                            <span class="badge badge-secondary">
+                                <i class="fas fa-cog"></i> ${analysis.analysis_method || 'Classique'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-card-body">
+                        <div class="analysis-summary">
+                            <div class="severity-indicator">
+                                <div class="severity-circle ${getSeverityClass(analysis.severity_score)}">
+                                    <span class="severity-score">${analysis.severity_score}</span>
+                                    <span class="severity-label">/10</span>
+                                </div>
+                                <span class="severity-text">Score de sévérité</span>
+                            </div>
+                            
+                            <div class="anomaly-stats">
+                                <div class="anomaly-stat">
+                                    <span class="anomaly-count">${analysis.anomalies_detected || analysis.total_anomalies || 0}</span>
+                                    <span class="anomaly-label">Anomalies détectées</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="analysis-summary-text">
+                            <p><strong>Résumé:</strong></p>
+                            <p class="summary-content">${(analysis.anomaly_summary || 'Aucun résumé disponible').substring(0, 150)}...</p>
+                        </div>
+                        
+                        ${analysis.anomaly_types && analysis.anomaly_types.length > 0 ? `
+                            <div class="anomaly-types">
+                                <p><strong>Types d'anomalies:</strong></p>
+                                <div class="anomaly-type-badges">
+                                    ${analysis.anomaly_types.map(type => 
+                                        `<span class="anomaly-type-badge">${getAnomalyTypeIcon(type)} ${type}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="analysis-actions">
+                            <button class="btn-primary btn-sm" onclick="showAnalysisDetails('${analysis.analysis_id || analysis.id}')">
+                                <i class="fas fa-eye"></i> Voir détails
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderHistoryRecommendations(recommendations) {
+            if (recommendations.length === 0) {
+                return '<p class="empty-state">Aucune recommandation dans l\'historique</p>';
+            }
+            
+            return recommendations.map(rec => `
+                <div class="recommendation-card ${rec.is_urgent ? 'urgent' : ''}">
+                    <div class="recommendation-card-header">
+                        <div class="recommendation-header-info">
+                            <h4><i class="fas fa-lightbulb"></i> Rapport #${rec.report_id || rec.id}</h4>
+                            <span class="recommendation-timestamp">${new Date(rec.generated_at).toLocaleString('fr-FR')}</span>
+                        </div>
+                        <div class="recommendation-badges">
+                            <span class="badge ${getPriorityBadgeClass(rec.priority_level)}">
+                                ${getPriorityIcon(rec.priority_level)} ${rec.priority_level?.toUpperCase() || 'LOW'}
+                            </span>
+                            ${rec.is_urgent ? '<span class="badge badge-danger"><i class="fas fa-exclamation"></i> URGENT</span>' : ''}
+                            <span class="badge badge-secondary">
+                                <i class="fas fa-cog"></i> ${rec.generation_method || 'Classique'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-card-body">
+                        <div class="recommendation-summary">
+                            <div class="recommendation-stats">
+                                <div class="recommendation-stat">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-list"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value">${rec.recommendations_count || 0}</span>
+                                        <span class="stat-label">Recommandations</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="recommendation-stat">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value">${rec.estimated_impact || 'Non défini'}</span>
+                                        <span class="stat-label">Impact estimé</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="recommendation-stat">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value">${rec.implementation_timeframe || 'Non défini'}</span>
+                                        <span class="stat-label">Délai d'implémentation</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-summary-text">
+                            <p><strong>Résumé exécutif:</strong></p>
+                            <p class="summary-content">${(rec.executive_summary || 'Aucun résumé disponible').substring(0, 200)}...</p>
+                        </div>
+                        
+                        <div class="recommendation-actions">
+                            <button class="btn-primary btn-sm" onclick="showRecommendationDetails('${rec.report_id || rec.id}')">
+                                <i class="fas fa-eye"></i> Voir détails
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function getServiceStatusDisplay(serviceStatus) {
+            if (!serviceStatus) return 'Non défini';
+            
+            if (typeof serviceStatus === 'string') {
+                return serviceStatus;
+            }
+            
+            if (typeof serviceStatus === 'object') {
+                // Compter les services par statut
+                const statuses = Object.values(serviceStatus);
+                const activeCount = statuses.filter(s => s === 'active').length;
+                const totalCount = statuses.length;
+                const hasErrors = statuses.some(s => ['error', 'offline', 'degraded'].includes(s));
+                
+                if (hasErrors) {
+                    return `${activeCount}/${totalCount} services (⚠️ Problèmes détectés)`;
+                } else if (activeCount === totalCount) {
+                    return `${totalCount}/${totalCount} services actifs ✅`;
+                } else {
+                    return `${activeCount}/${totalCount} services actifs`;
+                }
+            }
+            
+            return 'Format invalide';
+        }
+
+        function getMetricLevel(value, type) {
+            const thresholds = {
+                cpu: { warning: 70, critical: 90 },
+                memory: { warning: 80, critical: 95 },
+                disk: { warning: 80, critical: 95 }
+            };
+            
+            const threshold = thresholds[type] || { warning: 70, critical: 90 };
+            
+            if (value >= threshold.critical) return 'critical';
+            if (value >= threshold.warning) return 'warning';
+            return 'normal';
+        }
+
+        function getLatencyLevel(latency) {
+            if (latency >= 1000) return 'critical';
+            if (latency >= 500) return 'warning';
+            return 'normal';
+        }
+
+        function getTempLevel(temp) {
+            if (temp >= 80) return 'critical';
+            if (temp >= 70) return 'warning';
+            return 'normal';
+        }
+
+        function getAnalysisStatusBadge(analysisCompleted) {
+            return analysisCompleted 
+                ? '<span class="badge badge-success"><i class="fas fa-check"></i> Analysé</span>'
+                : '<span class="badge badge-warning"><i class="fas fa-clock"></i> En attente</span>';
+        }
+
+        function getAnomalyStatusBadge(isAnomalous) {
+            return isAnomalous 
+                ? '<span class="badge badge-danger"><i class="fas fa-exclamation-triangle"></i> Anomalie</span>'
+                : '<span class="badge badge-success"><i class="fas fa-shield-alt"></i> Normal</span>';
+        }
+
+        function getServiceStatusBadges(serviceStatus) {
+            if (!serviceStatus || typeof serviceStatus !== 'object') {
+                return '<span class="service-badge unknown">Non défini</span>';
+            }
+
+            return Object.entries(serviceStatus).map(([service, status]) => {
+                const statusClass = getServiceStatusClass(status);
+                const statusIcon = getServiceStatusIcon(status);
+                return `<span class="service-badge ${statusClass}">
+                    ${statusIcon} ${service}: ${status}
+                </span>`;
+            }).join('');
+        }
+
+        function getServiceStatusClass(status) {
+            const statusMap = {
+                'online': 'success',
+                'active': 'success',
+                'offline': 'danger',
+                'error': 'danger',
+                'degraded': 'warning',
+                'maintenance': 'info'
+            };
+            return statusMap[status] || 'secondary';
+        }
+
+        function getServiceStatusIcon(status) {
+            const iconMap = {
+                'online': '<i class="fas fa-check-circle"></i>',
+                'active': '<i class="fas fa-check-circle"></i>',
+                'offline': '<i class="fas fa-times-circle"></i>',
+                'error': '<i class="fas fa-exclamation-circle"></i>',
+                'degraded': '<i class="fas fa-exclamation-triangle"></i>',
+                'maintenance': '<i class="fas fa-tools"></i>'
+            };
+            return iconMap[status] || '<i class="fas fa-question-circle"></i>';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function getSeverityClass(score) {
+            if (score >= 8) return 'severity-critical';
+            if (score >= 6) return 'severity-high';
+            if (score >= 4) return 'severity-medium';
+            return 'severity-low';
+        }
+
+        function getAnomalyTypeIcon(type) {
+            const iconMap = {
+                'cpu': '<i class="fas fa-microchip"></i>',
+                'memory': '<i class="fas fa-memory"></i>',
+                'latency': '<i class="fas fa-clock"></i>',
+                'disk': '<i class="fas fa-hdd"></i>',
+                'io': '<i class="fas fa-exchange-alt"></i>',
+                'error_rate': '<i class="fas fa-exclamation-triangle"></i>',
+                'temperature': '<i class="fas fa-thermometer-half"></i>',
+                'power': '<i class="fas fa-bolt"></i>',
+                'service': '<i class="fas fa-cogs"></i>'
+            };
+            return iconMap[type] || '<i class="fas fa-question-circle"></i>';
+        }
+
+        function getPriorityBadgeClass(priority) {
+            const classMap = {
+                'critical': 'badge-danger',
+                'high': 'badge-warning',
+                'medium': 'badge-info',
+                'low': 'badge-success'
+            };
+            return classMap[priority?.toLowerCase()] || 'badge-secondary';
+        }
+
+        function getPriorityIcon(priority) {
+            const iconMap = {
+                'critical': '<i class="fas fa-exclamation-triangle"></i>',
+                'high': '<i class="fas fa-exclamation"></i>',
+                'medium': '<i class="fas fa-info"></i>',
+                'low': '<i class="fas fa-check"></i>'
+            };
+            return iconMap[priority?.toLowerCase()] || '<i class="fas fa-minus"></i>';
+        }
+
+        function switchHistoryTab(tab) {
+            // Gérer les onglets de l'historique
+            document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.history-section').forEach(s => s.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`history-${tab}`).classList.add('active');
+        }
+
+        // Fonctions pour les modals de détails
+        async function showMetricDetails(metricId) {
+            try {
+                // Trouver la métrique dans les données actuelles de l'historique
+                showLoading('Recherche des détails de la métrique...');
+                
+                // Récupérer les données depuis l'API
+                const response = await fetch(`${API_BASE}/ingestion/metrics`);
+                const result = await response.json();
+                
+                
+                if (result.success) {
+                    // La structure est result.data.metrics selon l'API
+                    const metrics = result.data?.metrics || result.metrics || [];
+                    const metric = metrics.find(m => m.id == metricId);
+                    
+                    if (metric) {
+                        showMetricDetailsModal(metric);
+                    } else {
+                        showAlert('error', `Métrique #${metricId} non trouvée dans ${metrics.length} métriques`);
+                    }
+                } else {
+                    showAlert('error', 'Impossible de charger les détails de la métrique');
+                }
+            } catch (error) {
+                showAlert('error', 'Erreur lors du chargement des détails');
+                console.error('Erreur détails métrique:', error);
+            }
+        }
+
+        function showMetricDetailsModal(metricData) {
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content modal-large">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-chart-line"></i> Détails de la métrique #${metricData.id}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="metric-details">
+                            <div class="detail-section">
+                                <h4>Informations générales</h4>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <strong>ID:</strong> ${metricData.id}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Timestamp:</strong> ${new Date(metricData.timestamp).toLocaleString('fr-FR')}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Créé le:</strong> ${new Date(metricData.created_at).toLocaleString('fr-FR')}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Analysé:</strong> ${metricData.analysis_completed ? '✅ Oui' : '⏳ Non'}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Anomalie:</strong> ${metricData.is_anomalous ? '⚠️ Oui' : '✅ Non'}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Uptime:</strong> ${Math.round(metricData.uptime_seconds / 3600, 1)}h
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Métriques de performance</h4>
+                                <div class="performance-metrics">
+                                    <div class="metric-detail-card">
+                                        <div class="metric-detail-header">
+                                            <i class="fas fa-microchip cpu-icon"></i>
+                                            <span>CPU</span>
+                                        </div>
+                                        <div class="metric-detail-value ${getMetricLevel(metricData.cpu_usage, 'cpu')}">${metricData.cpu_usage}%</div>
+                                        <div class="metric-detail-bar">
+                                            <div class="metric-detail-progress ${getMetricLevel(metricData.cpu_usage, 'cpu')}" style="width: ${metricData.cpu_usage}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="metric-detail-card">
+                                        <div class="metric-detail-header">
+                                            <i class="fas fa-memory memory-icon"></i>
+                                            <span>Mémoire</span>
+                                        </div>
+                                        <div class="metric-detail-value ${getMetricLevel(metricData.memory_usage, 'memory')}">${metricData.memory_usage}%</div>
+                                        <div class="metric-detail-bar">
+                                            <div class="metric-detail-progress ${getMetricLevel(metricData.memory_usage, 'memory')}" style="width: ${metricData.memory_usage}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="metric-detail-card">
+                                        <div class="metric-detail-header">
+                                            <i class="fas fa-hdd disk-icon"></i>
+                                            <span>Disque</span>
+                                        </div>
+                                        <div class="metric-detail-value ${getMetricLevel(metricData.disk_usage, 'disk')}">${metricData.disk_usage}%</div>
+                                        <div class="metric-detail-bar">
+                                            <div class="metric-detail-progress ${getMetricLevel(metricData.disk_usage, 'disk')}" style="width: ${metricData.disk_usage}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="metric-detail-card">
+                                        <div class="metric-detail-header">
+                                            <i class="fas fa-clock latency-icon"></i>
+                                            <span>Latence</span>
+                                        </div>
+                                        <div class="metric-detail-value ${getLatencyLevel(metricData.latency_ms)}">${metricData.latency_ms}ms</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Métriques réseau et I/O</h4>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <strong>Réseau entrant:</strong> ${formatBytes(metricData.network_in_kbps * 1024)}/s
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Réseau sortant:</strong> ${formatBytes(metricData.network_out_kbps * 1024)}/s
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>I/O Wait:</strong> ${metricData.io_wait}%
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Threads actifs:</strong> ${metricData.thread_count}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Connexions actives:</strong> ${metricData.active_connections}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Taux d'erreur:</strong> ${(metricData.error_rate * 100).toFixed(2)}%
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Métriques matérielles</h4>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <strong>Température:</strong> 
+                                        <span class="${getTempLevel(metricData.temperature_celsius)}">${metricData.temperature_celsius}°C</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Consommation:</strong> ${metricData.power_consumption_watts}W
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Status des services</h4>
+                                <div class="services-status-detailed">
+                                    ${getServiceStatusBadges(metricData.service_status)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        async function showAnalysisDetails(analysisId) {
+            try {
+                showLoading('Chargement des détails de l\'analyse...');
+                
+                // D'abord essayer l'endpoint spécifique
+                try {
+                    const response = await fetch(`${API_BASE}/analysis/result/${analysisId}`);
+                    const result = await response.json();
+                    
+                        
+                    if (result.success) {
+                        // D'après la vue backend, les données sont dans result.data
+                        const analysisData = result.data;
+                        if (analysisData) {
+                            showAnalysisDetailsModal(analysisData);
+                            return;
+                        }
+                    }
+                } catch (detailError) {
+                }
+                
+                // Fallback: chercher dans la liste des analyses
+                const listResponse = await fetch(`${API_BASE}/analysis/anomalies`);
+                const listResult = await listResponse.json();
+                
+                if (listResult.success) {
+                    const analyses = listResult.anomalies || listResult.data || [];
+                    const analysis = analyses.find(a => (a.analysis_id || a.id) == analysisId);
+                    
+                    if (analysis) {
+                        showAnalysisDetailsModal(analysis);
+                    } else {
+                        showAlert('error', `Analyse #${analysisId} non trouvée`);
+                    }
+                } else {
+                    showAlert('error', 'Impossible de charger les détails de l\'analyse');
+                }
+            } catch (error) {
+                showAlert('error', 'Erreur lors du chargement des détails');
+                console.error('Erreur détails analyse:', error);
+            }
+        }
+
+        async function showRecommendationDetails(reportId) {
+            try {
+                showLoading('Chargement des détails du rapport...');
+                
+                // Utiliser l'endpoint de détails spécifique pour obtenir toutes les données
+                const response = await fetch(`${API_BASE}/recommendations/reports/${reportId}`);
+                const result = await response.json();
+                
+                
+                if (result.success) {
+                    // D'après vos logs, les données sont directement dans result, pas dans result.data
+                    // Créer un objet avec toutes les propriétés disponibles
+                    const recommendationData = {
+                        report_id: result.report_id,
+                        metrics_id: result.metrics_id,
+                        generated_at: result.generated_at,
+                        priority_level: result.priority_level,
+                        is_urgent: result.is_urgent,
+                        estimated_impact: result.estimated_impact,
+                        executive_summary: result.executive_summary,
+                        implementation_timeframe: result.implementation_timeframe,
+                        generation_method: result.generation_method,
+                        recommendations_count: result.recommendations_count,
+                        detailed_analysis: result.detailed_analysis,
+                        recommendations: result.recommendations,
+                        metrics_timestamp: result.metrics_timestamp,
+                        // Ajouter toutes les autres propriétés
+                        ...result
+                    };
+                    
+                    
+                    if (recommendationData.report_id) {
+                        showRecommendationDetailsModal(recommendationData);
+                    } else {
+                        showAlert('error', 'Données de recommandation manquantes');
+                    }
+                } else {
+                    showAlert('error', 'Erreur lors du chargement: ' + (result.message || 'Réponse API invalide'));
+                }
+            } catch (error) {
+                showAlert('error', 'Erreur lors du chargement des détails');
+                console.error('Erreur détails recommandation:', error);
+            }
+        }
+
+        function showAnalysisDetailsModal(analysisData) {
+            
+            // Vérifier si les données sont valides
+            if (!analysisData || typeof analysisData !== 'object') {
+                showAlert('error', 'Données d\'analyse invalides ou manquantes');
+                return;
+            }
+            
+            // Adapter les propriétés selon la structure de l'API
+            const analysis_id = analysisData.analysis_id || analysisData.id || 'N/A';
+            const detected_at = analysisData.detected_at || analysisData.created_at || new Date().toISOString();
+            const severity_score = analysisData.severity_score || 0;
+            const analysis_method = analysisData.analysis_method || 'Non spécifié';
+            const anomalies_detected = analysisData.anomalies_detected || analysisData.total_anomalies || 0;
+            const is_critical = analysisData.is_critical || false;
+            const anomaly_summary = analysisData.anomaly_summary || 'Aucun résumé disponible';
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content modal-large">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-search"></i> Détails de l'analyse #${analysis_id}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="analysis-details">
+                            <div class="detail-section">
+                                <h4>Informations générales</h4>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <strong>ID de l'analyse:</strong> ${analysis_id}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Date de détection:</strong> ${new Date(detected_at).toLocaleString('fr-FR')}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Score de sévérité:</strong> 
+                                        <span class="severity-badge ${getSeverityClass(severity_score)}">${severity_score}/10</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Méthode d'analyse:</strong> ${analysis_method}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Anomalies détectées:</strong> ${anomalies_detected}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Critique:</strong> ${is_critical ? '⚠️ Oui' : '✅ Non'}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Résumé des anomalies</h4>
+                                <div class="anomaly-summary-box">
+                                    ${anomaly_summary}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Détails des anomalies</h4>
+                                <div class="anomaly-details-grid">
+                                    ${renderAnomalyDetails(analysisData.anomaly_details)}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Métriques associées</h4>
+                                <div class="metrics-summary">
+                                    ${renderMetricsSummary(analysisData.metrics_data)}
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function showRecommendationDetailsModal(recommendationData) {
+            
+            // Vérifier si les données sont valides
+            if (!recommendationData || typeof recommendationData !== 'object') {
+                showAlert('error', 'Données de recommandation invalides ou manquantes');
+                return;
+            }
+            
+            // Adapter les propriétés selon la structure de l'API
+            const report_id = recommendationData.report_id || recommendationData.id || 'N/A';
+            const generated_at = recommendationData.generated_at || recommendationData.created_at || new Date().toISOString();
+            const priority_level = recommendationData.priority_level || 'low';
+            const is_urgent = recommendationData.is_urgent || false;
+            const generation_method = recommendationData.generation_method || 'Non spécifié';
+            const estimated_impact = recommendationData.estimated_impact || 'Non défini';
+            const implementation_timeframe = recommendationData.implementation_timeframe || 'Non défini';
+            const executive_summary = recommendationData.executive_summary || 'Aucun résumé disponible';
+            const detailed_analysis = recommendationData.detailed_analysis || 'Aucune analyse détaillée disponible';
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content modal-large">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-lightbulb"></i> Détails du rapport #${report_id}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="recommendation-details">
+                            <div class="detail-section">
+                                <h4>Informations générales</h4>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <strong>ID du rapport:</strong> ${report_id}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Date de génération:</strong> ${new Date(generated_at).toLocaleString('fr-FR')}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Priorité:</strong> 
+                                        <span class="priority-badge ${getPriorityBadgeClass(priority_level)}">${priority_level?.toUpperCase()}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Urgent:</strong> ${is_urgent ? '🚨 Oui' : '✅ Non'}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Méthode de génération:</strong> ${generation_method}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Impact estimé:</strong> ${estimated_impact}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Délai d'implémentation:</strong> ${implementation_timeframe}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Résumé exécutif</h4>
+                                <div class="executive-summary-box">
+                                    ${executive_summary}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Analyse détaillée</h4>
+                                <div class="detailed-analysis-box">
+                                    ${detailed_analysis}
+                                </div>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>Recommandations</h4>
+                                <div class="recommendations-list">
+                                    ${renderRecommendationsList(recommendationData.recommendations)}
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function renderAnomalyDetails(anomalyDetails) {
+            if (!anomalyDetails) return '<p>Aucun détail d\'anomalie disponible</p>';
+            
+            return Object.entries(anomalyDetails).map(([key, value]) => {
+                if (typeof value === 'boolean') {
+                    return `
+                        <div class="anomaly-detail-item ${value ? 'anomaly-detected' : 'anomaly-normal'}">
+                            <i class="fas ${value ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i>
+                            <span>${formatAnomalyKey(key)}</span>
+                            <span class="anomaly-status">${value ? 'Détectée' : 'Normal'}</span>
+                        </div>
+                    `;
+                }
+                return '';
+            }).join('');
+        }
+
+        function renderMetricsSummary(metricsData) {
+            if (!metricsData) return '<p>Aucune donnée métrique disponible</p>';
+            
+            return `
+                <div class="metrics-summary-grid">
+                    <div class="metric-summary-item">
+                        <strong>CPU:</strong> ${metricsData.cpu_usage}%
+                    </div>
+                    <div class="metric-summary-item">
+                        <strong>Mémoire:</strong> ${metricsData.memory_usage}%
+                    </div>
+                    <div class="metric-summary-item">
+                        <strong>Latence:</strong> ${metricsData.latency_ms}ms
+                    </div>
+                    <div class="metric-summary-item">
+                        <strong>Disque:</strong> ${metricsData.disk_usage}%
+                    </div>
+                    <div class="metric-summary-item">
+                        <strong>Température:</strong> ${metricsData.temperature_celsius}°C
+                    </div>
+                    <div class="metric-summary-item">
+                        <strong>Consommation:</strong> ${metricsData.power_consumption_watts}W
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRecommendationsList(recommendations) {
+            if (!recommendations || !Array.isArray(recommendations)) {
+                return '<p>Aucune recommandation disponible</p>';
+            }
+            
+            return recommendations.map((rec, index) => {
+                
+                // Gérer les différents formats de recommandations
+                if (typeof rec === 'string') {
+                    return `
+                        <div class="recommendation-item">
+                            <div class="recommendation-number">${index + 1}</div>
+                            <div class="recommendation-content">${rec}</div>
+                        </div>
+                    `;
+                }
+                
+                if (typeof rec === 'object' && rec !== null) {
+                    // Format 1: recommandations avec category, priority, actions
+                    if (rec.category && rec.priority && rec.actions) {
+                        return `
+                            <div class="recommendation-item">
+                                <div class="recommendation-number">${index + 1}</div>
+                                <div class="recommendation-content">
+                                    <h5 style="margin-bottom: var(--spacing-xs); color: var(--color-text-primary);">
+                                        ${rec.category}
+                                        <span class="badge ${getPriorityBadgeClass(rec.priority.toLowerCase())}" style="margin-left: var(--spacing-sm);">
+                                            ${rec.priority}
+                                        </span>
+                                    </h5>
+                                    <div style="margin-bottom: var(--spacing-sm);">
+                                        <strong>Actions à effectuer:</strong>
+                                        <ul style="margin-top: var(--spacing-xs); margin-left: var(--spacing-md);">
+                                            ${rec.actions.map(action => {
+                                                if (typeof action === 'object' && action !== null) {
+                                                    return `<li>
+                                                        <strong>${action.description || action.title || 'Action'}</strong>
+                                                        ${action.details ? `<br><em style="color: var(--color-text-muted); font-size: var(--font-size-sm);">${action.details}</em>` : ''}
+                                                    </li>`;
+                                                }
+                                                return `<li>${action}</li>`;
+                                            }).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Format 2: recommandations avec problem, solution, steps
+                    if (rec.problem && rec.solution) {
+                        return `
+                            <div class="recommendation-item">
+                                <div class="recommendation-number">${index + 1}</div>
+                                <div class="recommendation-content">
+                                    <div style="margin-bottom: var(--spacing-sm);">
+                                        <strong style="color: var(--color-error);">Problème identifié:</strong>
+                                        <p style="margin: var(--spacing-xs) 0;">${rec.problem}</p>
+                                    </div>
+                                    <div style="margin-bottom: var(--spacing-sm);">
+                                        <strong style="color: var(--color-success);">Solution proposée:</strong>
+                                        <p style="margin: var(--spacing-xs) 0;">${rec.solution}</p>
+                                    </div>
+                                    ${rec.steps && rec.steps.length > 0 ? `
+                                        <div style="margin-bottom: var(--spacing-sm);">
+                                            <strong>Étapes d'implémentation:</strong>
+                                            <ol style="margin-top: var(--spacing-xs); margin-left: var(--spacing-md);">
+                                                ${rec.steps.map(step => `<li>${step}</li>`).join('')}
+                                            </ol>
+                                        </div>
+                                    ` : ''}
+                                    ${rec.metrics_to_monitor && rec.metrics_to_monitor.length > 0 ? `
+                                        <div style="margin-bottom: var(--spacing-sm);">
+                                            <strong>Métriques à surveiller:</strong>
+                                            <ul style="margin-top: var(--spacing-xs); margin-left: var(--spacing-md);">
+                                                ${rec.metrics_to_monitor.map(metric => `<li>${metric}</li>`).join('')}
+                                            </ul>
+                                        </div>
+                                    ` : ''}
+                                    ${rec.source ? `
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-text-muted);">
+                                            <em>Source: ${rec.source}</em>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Format 3: recommandations avec area, issue, actions (format générique)
+                    if (rec.area || rec.issue || rec.actions) {
+                        return `
+                            <div class="recommendation-item">
+                                <div class="recommendation-number">${index + 1}</div>
+                                <div class="recommendation-content">
+                                    ${rec.area ? `<h5 style="margin-bottom: var(--spacing-xs); color: var(--color-text-primary);">${rec.area}</h5>` : ''}
+                                    ${rec.issue ? `<p style="margin-bottom: var(--spacing-sm);"><strong>Problème:</strong> ${rec.issue}</p>` : ''}
+                                    ${rec.priority ? `<p style="margin-bottom: var(--spacing-sm);"><strong>Priorité:</strong> <span class="badge ${getPriorityBadgeClass(rec.priority.toLowerCase())}">${rec.priority}</span></p>` : ''}
+                                    ${rec.actions && rec.actions.length > 0 ? `
+                                        <div>
+                                            <strong>Actions:</strong>
+                                            <ul style="margin-top: var(--spacing-xs); margin-left: var(--spacing-md);">
+                                                ${rec.actions.map(action => {
+                                                    // Gérer différents formats d'actions
+                                                    if (typeof action === 'string') {
+                                                        return `<li>${action}</li>`;
+                                                    }
+                                                    if (typeof action === 'object' && action !== null) {
+                                                        return `<li>${action.description || action.text || action.action || JSON.stringify(action)}</li>`;
+                                                    }
+                                                    return `<li>${action}</li>`;
+                                                }).join('')}
+                                            </ul>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Format 4: objet générique - afficher toutes les propriétés
+                    const keys = Object.keys(rec);
+                    return `
+                        <div class="recommendation-item">
+                            <div class="recommendation-number">${index + 1}</div>
+                            <div class="recommendation-content">
+                                ${keys.map(key => {
+                                    const value = rec[key];
+                                    if (Array.isArray(value)) {
+                                        return `
+                                            <div style="margin-bottom: var(--spacing-sm);">
+                                                <strong>${key}:</strong>
+                                                <ul style="margin-top: var(--spacing-xs); margin-left: var(--spacing-md);">
+                                                    ${value.map(item => `<li>${item}</li>`).join('')}
+                                                </ul>
+                                            </div>
+                                        `;
+                                    } else {
+                                        return `<p style="margin-bottom: var(--spacing-xs);"><strong>${key}:</strong> ${value}</p>`;
+                                    }
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="recommendation-item">
+                        <div class="recommendation-number">${index + 1}</div>
+                        <div class="recommendation-content">${rec}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatAnomalyKey(key) {
+            const keyMap = {
+                'cpu_anomaly': 'CPU',
+                'memory_anomaly': 'Mémoire',
+                'latency_anomaly': 'Latence',
+                'disk_anomaly': 'Disque',
+                'io_anomaly': 'I/O',
+                'error_rate_anomaly': 'Taux d\'erreur',
+                'temperature_anomaly': 'Température',
+                'power_anomaly': 'Consommation',
+                'service_anomaly': 'Services'
+            };
+            return keyMap[key] || key;
+        }
+
+        
+        function clearWorkflow() {
+            if (confirm('Voulez-vous vraiment recommencer un nouveau workflow ? Toutes les données actuelles seront perdues.')) {
+                // Réinitialiser l'état global
+                currentMetricsIds = [];
+                currentAnalysisResults = [];
+                selectedAnalysisMethod = 'classic';
+                selectedRecommendationMethod = 'classic';
+                
+                // Réinitialiser l'interface
+                document.querySelectorAll('.step-card').forEach(card => {
+                    card.classList.remove('active', 'completed', 'available');
+                });
+                document.querySelectorAll('.step-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.querySelectorAll('.step-number').forEach(num => {
+                    num.classList.remove('active', 'completed');
+                    if (num.id === 'number-1') {
+                        num.classList.add('active');
+                        num.innerHTML = '1';
+                    } else {
+                        num.innerHTML = num.id.split('-')[1];
+                    }
+                });
+                
+                // Activer la première étape
+                document.getElementById('step-1').classList.add('active');
+                document.getElementById('content-1').classList.add('active');
+                
+                // Nettoyer les résultats
+                document.getElementById('analysis-results').innerHTML = '';
+                document.getElementById('recommendations-results').innerHTML = '';
+                
+                showAlert('info', 'Nouveau workflow initialisé');
+            }
+        }
+    </script>
+</body>
+</html>
