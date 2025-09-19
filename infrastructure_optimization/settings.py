@@ -28,6 +28,19 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+# Configuration pour le déploiement Azure App Service
+import os
+if 'WEBSITE_HOSTNAME' in os.environ:
+    # Configuration pour Azure App Service
+    ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']]
+    DEBUG = config('DEBUG', default=False, cast=bool)
+    
+    # Utiliser WhiteNoise pour servir les fichiers statiques en production
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    
+    # Configuration optimisée pour la production
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Application definition
 
@@ -122,7 +135,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Additional locations of static files
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
