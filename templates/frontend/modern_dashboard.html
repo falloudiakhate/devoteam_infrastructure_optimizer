@@ -1434,8 +1434,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     
     <script>
-        // Configuration API
-        const API_BASE = 'http://localhost:8000/api';
+        // Configuration API - Detection automatique de l'environnement
+        const API_BASE = (() => {
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            const port = window.location.port;
+            
+            // Production Azure App Service
+            if (hostname.includes('azurewebsites.net')) {
+                return `${protocol}//${hostname}/api`;
+            }
+            
+            // Developpement local
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                const portSuffix = port ? `:${port}` : ':8000';
+                return `${protocol}//${hostname}${portSuffix}/api`;
+            }
+            
+            // Autres environnements
+            return `${protocol}//${hostname}${port ? ':' + port : ''}/api`;
+        })();
         
         // État global
         let currentMetricsIds = [];
