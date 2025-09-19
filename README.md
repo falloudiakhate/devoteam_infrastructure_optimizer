@@ -54,6 +54,170 @@ devoteam_infrastructure_optimizer/
 └── sample_data/
 ```
 
+## Architecture du Systeme
+
+### Vue d'Ensemble
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    INFRASTRUCTURE OPTIMIZER                     │
+│                     (Django Application)                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   FRONTEND      │    │   API LAYER     │    │   SERVICES      │
+│                 │    │                 │    │                 │
+│ - Modern HTML   │◄──►│ - REST API      │◄──►│ - Azure OpenAI  │
+│ - JavaScript    │    │ - Swagger Doc   │    │ - Classic Algo  │
+│ - CSS3 Design  │    │ - Serializers   │    │ - ML Detection  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       DATA LAYER                               │
+│                                                                 │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐      │
+│  │   INGESTION   │  │   ANALYSIS    │  │ RECOMMENDATIONS│      │
+│  │               │  │               │  │                │      │
+│  │ - Metrics     │  │ - Anomalies   │  │ - Reports      │      │
+│  │ - Validation  │  │ - Detection   │  │ - Actions      │      │
+│  │ - Storage     │  │ - Scoring     │  │ - Priorities   │      │
+│  └───────────────┘  └───────────────┘  └───────────────┘      │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     DATABASE (SQLite)                          │
+│                                                                 │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐   │
+│ │Infrastructure   │ │ AnomalyDetection│ │Recommendation   │   │
+│ │   Metrics       │ │                 │ │    Report       │   │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Flux de Donnees
+
+```
+[INPUT JSON] ──────────────────────────────────────────────────────┐
+     │                                                             │
+     ▼                                                             │
+┌─────────────────┐    ┌─────────────────┐                        │
+│   INGESTION     │    │   VALIDATION    │                        │
+│                 │───►│                 │                        │
+│ - Parse JSON    │    │ - Schema Check  │                        │
+│ - Batch/Single  │    │ - Data Types    │                        │
+└─────────────────┘    └─────────────────┘                        │
+                                │                                  │
+                                ▼                                  │
+                    ┌─────────────────┐                           │
+                    │   STORAGE       │                           │
+                    │                 │                           │
+                    │ - Save Metrics  │                           │
+                    │ - Index Data    │                           │
+                    └─────────────────┘                           │
+                                │                                  │
+                                ▼                                  │
+                    ┌─────────────────┐                           │
+                    │   ANALYSIS      │                           │
+                    │                 │                           │
+                    │ ┌─────────────┐ │                           │
+                    │ │   CLASSIC   │ │                           │
+                    │ │ - Thresholds│ │                           │
+                    │ │ - Rules     │ │                           │
+                    │ └─────────────┘ │                           │
+                    │        OR       │                           │
+                    │ ┌─────────────┐ │                           │
+                    │ │    LLM      │ │ ◄─────────────────────────┤
+                    │ │ - AI Context│ │                           │
+                    │ │ - Prompts   │ │                           │
+                    │ └─────────────┘ │                           │
+                    └─────────────────┘                           │
+                                │                                  │
+                                ▼                                  │
+                    ┌─────────────────┐                           │
+                    │ RECOMMENDATIONS │                           │
+                    │                 │                           │
+                    │ ┌─────────────┐ │                           │
+                    │ │   CLASSIC   │ │                           │
+                    │ │ - Templates │ │                           │
+                    │ │ - Rules     │ │                           │
+                    │ └─────────────┘ │                           │
+                    │        OR       │                           │
+                    │ ┌─────────────┐ │                           │
+                    │ │    LLM      │ │ ◄─────────────────────────┘
+                    │ │ - Smart Rec │ │
+                    │ │ - Context   │ │
+                    │ └─────────────┘ │
+                    └─────────────────┘
+                                │
+                                ▼
+                      [OUTPUT REPORTS]
+```
+
+### Architecture des Services
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      CORE SERVICES                             │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐         ┌─────────────────┐
+│  AZURE OPENAI   │         │    CLASSIC      │
+│    SERVICE      │         │   ALGORITHMS    │
+│                 │         │                 │
+│ ┌─────────────┐ │         │ ┌─────────────┐ │
+│ │ GPT-4 API   │ │         │ │ Thresholds  │ │
+│ │ Completion  │ │         │ │ Statistical │ │
+│ │ JSON Parse  │ │         │ │ Rules Engine│ │
+│ └─────────────┘ │         │ └─────────────┘ │
+│                 │         │                 │
+│ ┌─────────────┐ │         │ ┌─────────────┐ │
+│ │ Prompts     │ │         │ │ Scoring     │ │
+│ │ Templates   │ │         │ │ Validation  │ │
+│ │ Context     │ │         │ │ Templates   │ │
+│ └─────────────┘ │         │ └─────────────┘ │
+└─────────────────┘         └─────────────────┘
+        │                           │
+        └─────────┬─────────────────┘
+                  ▼
+    ┌─────────────────────────────┐
+    │     SERVICE MANAGER         │
+    │                             │
+    │ - Method Selection          │
+    │ - Failover Logic           │
+    │ - Response Validation      │
+    │ - Error Handling           │
+    └─────────────────────────────┘
+```
+
+### Modele de Deployment
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    AZURE APP SERVICE                           │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   FRONT TIER    │    │  APPLICATION    │    │   DATA TIER     │
+│                 │    │      TIER       │    │                 │
+│ - Static Files  │    │                 │    │ - SQLite DB     │
+│ - WhiteNoise    │    │ - Django App    │    │ - File Storage  │
+│ - CDN Ready     │    │ - REST API      │    │ - Backups       │
+└─────────────────┘    │ - Background    │    └─────────────────┘
+                       │   Tasks         │
+                       └─────────────────┘
+                               │
+                               ▼
+                   ┌─────────────────────┐
+                   │   EXTERNAL APIs     │
+                   │                     │
+                   │ - Azure OpenAI      │
+                   │ - Monitoring        │
+                   │ - Logging           │
+                   └─────────────────────┘
+```
+
 ## Modeles de Donnees
 
 ### InfrastructureMetrics
