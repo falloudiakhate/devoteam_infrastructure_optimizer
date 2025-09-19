@@ -28,19 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-# Configuration pour le déploiement Azure App Service
-import os
-if 'WEBSITE_HOSTNAME' in os.environ:
-    # Configuration pour Azure App Service
-    ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']]
-    DEBUG = config('DEBUG', default=False, cast=bool)
-    
-    # Utiliser WhiteNoise pour servir les fichiers statiques en production
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    
-    # Configuration optimisée pour la production
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 
 # Application definition
 
@@ -69,6 +56,19 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Configuration pour le déploiement Azure App Service
+import os
+if 'WEBSITE_HOSTNAME' in os.environ:
+    # Configuration pour Azure App Service
+    ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']]
+    DEBUG = config('DEBUG', default=False, cast=bool)
+    
+    # Utiliser WhiteNoise pour servir les fichiers statiques en production
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    
+    # Configuration optimisée pour la production
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'infrastructure_optimization.urls'
 
